@@ -10,18 +10,20 @@ import schedule
 
 from activity_logger import ActivityLogger, get_today_log
 from analyzer import analyze_today
-from config import ANALYSIS_HOUR, ANALYSIS_MINUTE
+from config import ANALYSIS_HOUR, ANALYSIS_MINUTE, RECORD_ONLY
 
 VIEWER_SCRIPT = Path(__file__).parent / "suggestion_viewer.py"
 
 
 class AISupportApp(rumps.App):
     def __init__(self):
-        super().__init__("AI", quit_button=None)
+        icon = "録" if RECORD_ONLY else "AI"
+        super().__init__(icon, quit_button=None)
         self._logger = ActivityLogger()
+        analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
         self.menu = [
             rumps.MenuItem("今日のログ件数を確認", callback=self.show_log_count),
-            rumps.MenuItem("今すぐ分析する", callback=self.run_analysis_now),
+            rumps.MenuItem(analyze_label, callback=self.run_analysis_now),
             None,
             rumps.MenuItem("終了", callback=self.quit_app),
         ]

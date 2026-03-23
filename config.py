@@ -26,6 +26,10 @@ SCREENSHOT_MODE = False
 SCREENSHOT_DIR = DATA_DIR / "screenshots"
 SCREENSHOT_MAX_SEND = 12  # 分析時に送る最大枚数（均等サンプリング）
 
+# 収録のみモード
+# True にすると LLM API を一切呼ばず、ログ・スクリーンショットの記録だけ行う
+RECORD_ONLY = False
+
 # Scheduler: 何時に分析するか（0 = 深夜0時）
 ANALYSIS_HOUR = 0
 ANALYSIS_MINUTE = 0

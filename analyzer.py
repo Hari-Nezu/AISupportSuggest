@@ -2,7 +2,7 @@ from collections import Counter
 from datetime import datetime
 
 from activity_logger import get_today_log, get_today_screenshots
-from config import SCREENSHOT_MAX_SEND, SCREENSHOT_MODE
+from config import RECORD_ONLY, SCREENSHOT_MAX_SEND, SCREENSHOT_MODE
 from llm_client import query_llm, query_llm_with_images
 
 
@@ -50,6 +50,46 @@ def build_prompt(entries: list[dict], has_screenshots: bool = False) -> str:
 ログに基づいて具体的かつ実践的な提案をしてください。"""
 
 
+def format_log_summary(entries: list[dict]) -> str:
+    """LLM を使わずに今日のログを読みやすいテキストにまとめる。"""
+    app_counter: Counter = Counter()
+    app_windows: dict[str, set] = {}
+
+    for entry in entries:
+        app = entry.get("app", "Unknown")
+        window = entry.get("window", "")
+        app_counter[app] += 1
+        app_windows.setdefault(app, set())
+        if window:
+            app_windows[app].add(window)
+
+    date_str = datetime.now().strftime("%Y年%m月%d日")
+    total_minutes = len(entries) * 5
+    screenshot_count = sum(1 for e in entries if "screenshot" in e)
+
+    lines = [
+        f"【{date_str} の作業ログ】",
+        f"記録件数: {len(entries)} 件（約 {total_minutes} 分）",
+    ]
+    if screenshot_count:
+        lines.append(f"スクリーンショット: {screenshot_count} 枚")
+    lines.append("")
+    lines.append("── アプリ別使用時間 ──")
+
+    for app, count in app_counter.most_common():
+        minutes = count * 5
+        windows = list(app_windows[app])[:5]
+        windows_str = "、".join(windows) if windows else "（タイトル不明）"
+        lines.append(f"  {app}（約{minutes}分）")
+        lines.append(f"    {windows_str}")
+
+    lines.append("")
+    lines.append("※ 収録のみモード（RECORD_ONLY=True）のため、AI分析は実行されていません。")
+    lines.append("  分析を行うには config.py で RECORD_ONLY = False に変更してください。")
+
+    return "\n".join(lines)
+
+
 def analyze_today() -> str:
     entries = get_today_log()
     if not entries:
@@ -58,6 +98,9 @@ def analyze_today() -> str:
             "アプリ起動後、5分ごとにアクティブなアプリが自動記録されます。\n"
             "しばらく経ってから再度「今すぐ分析」をお試しください。"
         )
+
+    if RECORD_ONLY:
+        return format_log_summary(entries)
 
     if SCREENSHOT_MODE:
         screenshot_paths = get_today_screenshots(entries, SCREENSHOT_MAX_SEND)

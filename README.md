@@ -1,5 +1,7 @@
 # AISupportSuggest
 
+![version](https://img.shields.io/badge/version-0.0.1-blue)
+
 1日の作業を自動記録し、AIが「もっと楽にできる方法」を毎晩提案してくれる macOS メニューバーアプリ。
 
 > 詳細な技術仕様は [TECH.md](./TECH.md) を参照してください。

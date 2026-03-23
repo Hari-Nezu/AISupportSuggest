@@ -127,8 +127,13 @@ source ~/.zshrc   # 設定したばかりの場合
 
 **ローカルLLM（Ollama）に切り替えたい場合**
 
-`config.py` を編集してください。
+[Ollama](https://ollama.com) をインストール後、`config.py` を編集してください。
 ```python
 USE_ANTHROPIC = False
 OLLAMA_MODEL  = "llama3.2"
+```
+その後、Ollama を起動してからアプリを実行してください。
+```bash
+ollama serve
+python3 main.py
 ```

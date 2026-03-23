@@ -38,9 +38,12 @@
 
 ## 必要環境
 
-- macOS 12 以降
-- Python 3.11 以降
-- Anthropic API キー（会社から発行されたものを使用したりなど）
+| | macOS | Windows |
+|---|---|---|
+| OS | macOS 12 以降 | Windows 10 / 11 |
+| Python | 3.11 以降 | 3.11 以降 |
+| その他 | — | — |
+| 共通 | Anthropic API キー（会社から発行されたもの） ||
 
 ---
 
@@ -48,28 +51,41 @@
 
 ### 1. API キーを設定する
 
-会社から発行された Anthropic API キーを環境変数に設定します。
-
+**macOS:**
 ```bash
 # 永続化する場合（推奨）: ~/.zshrc に追記
 echo 'export ANTHROPIC_API_KEY="sk-ant-ここにキーを貼り付け"' >> ~/.zshrc
 source ~/.zshrc
+
+# 確認
+echo $ANTHROPIC_API_KEY
 ```
 
-設定できているか確認:
-```bash
-echo $ANTHROPIC_API_KEY
-# sk-ant-... と表示されればOK
+**Windows:**
+1. Windowsキー → 「環境変数」で検索
+2. 「システム環境変数の編集」→「環境変数」
+3. ユーザー環境変数に `ANTHROPIC_API_KEY` を追加して値に API キーを貼り付け
+
+または PowerShell で一時設定:
+```powershell
+$env:ANTHROPIC_API_KEY="sk-ant-ここにキーを貼り付け"
 ```
 
 ### 2. アプリのセットアップ
 
+**macOS:**
 ```bash
 cd AISupportSuggest
 bash setup.sh
 ```
 
-### 3. macOS のプライバシー許可
+**Windows:**
+```bat
+cd AISupportSuggest
+setup.bat
+```
+
+### 3. プライバシー許可（macOS のみ）
 
 初回起動時に許可ダイアログが表示されます。「許可する」を選択してください。
 
@@ -81,8 +97,14 @@ bash setup.sh
 
 ## 起動方法
 
+**macOS:**
 ```bash
 python3 main.py
+```
+
+**Windows:**
+```bat
+python main.py
 ```
 
 メニューバーに `AI` が表示されたら起動完了です。

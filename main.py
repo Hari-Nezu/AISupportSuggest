@@ -1,4 +1,8 @@
-from menubar_app import AISupportApp
+import platform
 
-if __name__ == "__main__":
+if platform.system() == "Windows":
+    from tray_app_win import WinTrayApp
+    WinTrayApp().run()
+else:
+    from menubar_app import AISupportApp
     AISupportApp().run()

@@ -3,8 +3,14 @@ import subprocess
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 
-from config import ACTIVITY_LOG_FILE, LOG_INTERVAL_MINUTES
+from config import (
+    ACTIVITY_LOG_FILE,
+    LOG_INTERVAL_MINUTES,
+    SCREENSHOT_DIR,
+    SCREENSHOT_MODE,
+)
 
 
 def get_active_app_info() -> tuple[str, str]:
@@ -34,14 +40,43 @@ def get_active_app_info() -> tuple[str, str]:
     return "Unknown", ""
 
 
+def capture_screenshot(timestamp: str) -> str | None:
+    """
+    スクリーンショットを撮影して保存し、ファイルパスを返す。
+    macOS の「画面収録」権限が必要。
+    失敗した場合は None を返す。
+    """
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    safe_ts = timestamp.replace(":", "-")
+    filepath = SCREENSHOT_DIR / f"{safe_ts}.png"
+    try:
+        result = subprocess.run(
+            ["screencapture", "-x", "-t", "png", str(filepath)],
+            capture_output=True, timeout=10
+        )
+        if result.returncode == 0 and filepath.exists():
+            return str(filepath)
+    except Exception:
+        pass
+    return None
+
+
 def log_activity() -> dict:
     """現在のアクティブアプリをログファイルに追記する。"""
     app_name, window_title = get_active_app_info()
-    entry = {
-        "timestamp": datetime.now().isoformat(),
+    timestamp = datetime.now().isoformat()
+
+    entry: dict = {
+        "timestamp": timestamp,
         "app": app_name,
         "window": window_title,
     }
+
+    if SCREENSHOT_MODE:
+        screenshot_path = capture_screenshot(timestamp)
+        if screenshot_path:
+            entry["screenshot"] = screenshot_path
+
     with open(ACTIVITY_LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
     return entry
@@ -65,6 +100,25 @@ def get_today_log() -> list[dict]:
             except json.JSONDecodeError:
                 pass
     return entries
+
+
+def get_today_screenshots(entries: list[dict], max_count: int) -> list[str]:
+    """
+    今日のログから screenshot パスを均等サンプリングして返す。
+    max_count 枚を上限とする。
+    """
+    paths = [
+        e["screenshot"]
+        for e in entries
+        if "screenshot" in e and Path(e["screenshot"]).exists()
+    ]
+    if not paths or max_count <= 0:
+        return []
+    if len(paths) <= max_count:
+        return paths
+    # 均等サンプリング
+    step = len(paths) / max_count
+    return [paths[int(i * step)] for i in range(max_count)]
 
 
 class ActivityLogger:

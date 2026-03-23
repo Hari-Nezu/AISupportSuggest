@@ -1,11 +1,12 @@
 from collections import Counter
 from datetime import datetime
 
-from activity_logger import get_today_log
-from llm_client import query_llm
+from activity_logger import get_today_log, get_today_screenshots
+from config import SCREENSHOT_MAX_SEND, SCREENSHOT_MODE
+from llm_client import query_llm, query_llm_with_images
 
 
-def build_prompt(entries: list[dict]) -> str:
+def build_prompt(entries: list[dict], has_screenshots: bool = False) -> str:
     app_counter: Counter = Counter()
     app_windows: dict[str, set] = {}
 
@@ -27,7 +28,13 @@ def build_prompt(entries: list[dict]) -> str:
     log_text = "\n".join(lines)
     date_str = datetime.now().strftime("%Y年%m月%d日")
 
-    return f"""以下は{date_str}の1日のPC作業ログです（アプリ名・推定使用時間・ウィンドウタイトル）。
+    screenshot_note = (
+        "\nまた、1日の作業画面のスクリーンショット（均等サンプリング）も添付します。"
+        "画面の内容も参考にして、より具体的な提案をしてください。"
+        if has_screenshots else ""
+    )
+
+    return f"""以下は{date_str}の1日のPC作業ログです（アプリ名・推定使用時間・ウィンドウタイトル）。{screenshot_note}
 
 {log_text}
 
@@ -37,7 +44,7 @@ def build_prompt(entries: list[dict]) -> str:
 【提案タイトル】
 ・現在の作業: （どんな作業をしているか）
 ・AI活用法: （具体的にどうAIを使うか）
-・使えるツール: （Claude、Copilot、ChatGPT、ローカルLLM、Ollama等）
+・使えるツール: （Claude、Copilot、ChatGPT、ローカルLLM等）
 ・期待効果: （どれくらい省力化できるか）
 
 ログに基づいて具体的かつ実践的な提案をしてください。"""
@@ -51,6 +58,12 @@ def analyze_today() -> str:
             "アプリ起動後、5分ごとにアクティブなアプリが自動記録されます。\n"
             "しばらく経ってから再度「今すぐ分析」をお試しください。"
         )
+
+    if SCREENSHOT_MODE:
+        screenshot_paths = get_today_screenshots(entries, SCREENSHOT_MAX_SEND)
+        if screenshot_paths:
+            prompt = build_prompt(entries, has_screenshots=True)
+            return query_llm_with_images(prompt, screenshot_paths)
 
     prompt = build_prompt(entries)
     return query_llm(prompt)

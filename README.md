@@ -40,7 +40,7 @@
 
 - macOS 12 以降
 - Python 3.11 以降
-- Anthropic API キー（会社から発行されたものを使用）
+- Anthropic API キー（会社から発行されたものを使用したりなど）
 
 ---
 

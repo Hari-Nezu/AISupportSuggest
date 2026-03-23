@@ -25,7 +25,7 @@
 │ 【メール定型文の自動生成】        │
 │ ・現在の作業: メール作成に30分    │
 │ ・AI活用法: テンプレ＋LLMで文案  │
-│ ・使えるツール: Ollama / Claude  │
+│ ・使えるツール: Claude           │
 │ ・期待効果: 作業時間を80%削減    │
 │                                 │
 │           [ 閉じる ]            │
@@ -40,19 +40,26 @@
 
 - macOS 12 以降
 - Python 3.11 以降
-- [Ollama](https://ollama.com)（ローカルLLM・無料）
+- Anthropic API キー（会社から発行されたものを使用）
 
 ---
 
 ## セットアップ
 
-### 1. Ollama のインストール
+### 1. API キーを設定する
 
-[https://ollama.com](https://ollama.com) からダウンロードしてインストール。
+会社から発行された Anthropic API キーを環境変数に設定します。
 
 ```bash
-# AIモデルをダウンロード（初回のみ・約2GB）
-ollama pull llama3.2
+# 永続化する場合（推奨）: ~/.zshrc に追記
+echo 'export ANTHROPIC_API_KEY="sk-ant-ここにキーを貼り付け"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+設定できているか確認:
+```bash
+echo $ANTHROPIC_API_KEY
+# sk-ant-... と表示されればOK
 ```
 
 ### 2. アプリのセットアップ
@@ -75,10 +82,6 @@ bash setup.sh
 ## 起動方法
 
 ```bash
-# ターミナル1: Ollama を起動
-ollama serve
-
-# ターミナル2: アプリを起動
 python3 main.py
 ```
 
@@ -103,25 +106,29 @@ python3 main.py
 ## プライバシーについて
 
 - 記録されるのは**アプリ名とウィンドウタイトルのみ**（画面キャプチャなし）
-- Ollamaを使用する場合、すべての処理は**ローカル完結**でデータは外部送信されません
-- ログは `data/activity_log.jsonl` に保存されます。削除したい場合はこのファイルを削除してください
+- Anthropic API の商用利用では、入出力データはモデル学習に使用されません
+- ログは `data/activity_log.jsonl` にローカル保存されます。削除したい場合はこのファイルを削除してください
 
 ---
 
 ## トラブルシューティング
 
-**「Ollama に接続できません」と表示される**
+**「ANTHROPIC_API_KEY が設定されていません」と表示される**
+
+環境変数が正しく設定されているか確認してください。
 ```bash
-ollama serve
+echo $ANTHROPIC_API_KEY
+source ~/.zshrc   # 設定したばかりの場合
 ```
-Ollama を起動してから再試行してください。
 
 **アプリ名が「Unknown」になる**
 
 システム設定 → プライバシーとセキュリティ → オートメーション で本アプリの許可を確認してください。
 
-**提案の質を上げたい**
-```bash
-ollama pull gemma3:12b   # より高品質なモデル（要16GB RAM）
+**ローカルLLM（Ollama）に切り替えたい場合**
+
+`config.py` を編集してください。
+```python
+USE_ANTHROPIC = False
+OLLAMA_MODEL  = "llama3.2"
 ```
-`config.py` の `OLLAMA_MODEL` を変更してください。

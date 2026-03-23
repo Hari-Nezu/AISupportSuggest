@@ -10,27 +10,27 @@ python3 --version
 echo ">> パッケージをインストール中..."
 pip3 install -r requirements.txt
 
-# Ollama の確認
+# API キーの確認
 echo ""
-if command -v ollama &> /dev/null; then
-    echo ">> Ollama が見つかりました: $(ollama --version)"
-    echo ">> インストール済みモデル:"
-    ollama list
+if [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo ">> 警告: ANTHROPIC_API_KEY が設定されていません。"
+    echo "   以下の方法で設定してください:"
     echo ""
-    echo ">> llama3.2 がない場合は以下を実行してください:"
-    echo "   ollama pull llama3.2"
+    echo "   # 毎回設定する場合:"
+    echo "   export ANTHROPIC_API_KEY='sk-ant-...'"
+    echo ""
+    echo "   # 永続化する場合（~/.zshrc に追記）:"
+    echo "   echo 'export ANTHROPIC_API_KEY=\"sk-ant-...\"' >> ~/.zshrc"
+    echo "   source ~/.zshrc"
 else
-    echo ">> Ollama が見つかりません。"
-    echo "   https://ollama.com からインストールしてください。"
-    echo "   インストール後: ollama pull llama3.2"
+    echo ">> ANTHROPIC_API_KEY が設定されています。"
 fi
 
 echo ""
 echo "=== セットアップ完了 ==="
 echo ""
 echo "起動方法:"
-echo "  1. Ollama を起動: ollama serve"
-echo "  2. アプリを起動: python3 main.py"
+echo "  python3 main.py"
 echo ""
-echo "注意: 初回起動時に macOS の「アクセシビリティ」「オートメーション」の"
+echo "注意: 初回起動時に macOS の「オートメーション」の"
 echo "      許可ダイアログが表示されます。「許可する」を選択してください。"

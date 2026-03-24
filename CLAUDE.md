@@ -35,7 +35,7 @@ main.py
 ## セットアップ
 
 ```sh
-bash setup.sh        # 依存インストール + Swift ビューアビルド
+bash scripts/setup.sh        # 依存インストール + Swift ビューアビルド
 export ANTHROPIC_API_KEY='sk-ant-...'
 python3 main.py
 ```

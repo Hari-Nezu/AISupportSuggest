@@ -20,6 +20,18 @@ CREATE TABLE IF NOT EXISTS events (
     created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
 );
 
+CREATE TABLE IF NOT EXISTS tasks (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    date         TEXT NOT NULL,
+    started_at   TEXT NOT NULL,
+    ended_at     TEXT,
+    label        TEXT,
+    source       TEXT NOT NULL DEFAULT 'llm',
+    frustration  INTEGER NOT NULL DEFAULT 0,
+    updated_at   TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    UNIQUE(date, started_at)
+);
+
 CREATE TABLE IF NOT EXISTS daily_analysis (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     date            TEXT    NOT NULL,
@@ -170,3 +182,42 @@ class Database:
                 (date_str,),
             )
             return {row["app_name"]: row["total"] for row in cur.fetchall()}
+
+    # ── タスクグループ操作 ────────────────────────────────────────────────
+
+    def upsert_tasks(self, date_str: str, tasks: list[dict]):
+        """LLM 解釈のタスクグループを保存（再分析時は上書き）。
+        tasks の各要素: {"started_at": "HH:MM:SS", "ended_at": "HH:MM:SS", "label": str}
+        """
+        with self._cursor() as cur:
+            for t in tasks:
+                cur.execute(
+                    """INSERT INTO tasks (date, started_at, ended_at, label, source, updated_at)
+                       VALUES (?, ?, ?, ?, 'llm', datetime('now','localtime'))
+                       ON CONFLICT(date, started_at) DO UPDATE SET
+                           ended_at   = excluded.ended_at,
+                           label      = excluded.label,
+                           source     = 'llm',
+                           updated_at = datetime('now','localtime')""",
+                    (date_str, t.get("started_at"), t.get("ended_at"), t.get("label")),
+                )
+
+    def flag_latest_task_frustration(self, date_str: str) -> bool:
+        """当日の最新タスクに鬱陶しさフラグを立てる。該当タスクがなければ False を返す。"""
+        with self._cursor() as cur:
+            cur.execute(
+                """UPDATE tasks SET frustration = 1, updated_at = datetime('now','localtime')
+                   WHERE id = (
+                       SELECT id FROM tasks WHERE date = ? ORDER BY started_at DESC LIMIT 1
+                   )""",
+                (date_str,),
+            )
+            return cur.rowcount > 0
+
+    def get_tasks_by_date(self, date_str: str) -> list[dict]:
+        with self._cursor() as cur:
+            cur.execute(
+                "SELECT * FROM tasks WHERE date = ? ORDER BY started_at",
+                (date_str,),
+            )
+            return [dict(row) for row in cur.fetchall()]

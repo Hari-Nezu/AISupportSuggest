@@ -49,6 +49,8 @@ class WinTrayApp:
         analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
 
         menu = pystray.Menu(
+            pystray.MenuItem("直前の作業にフラグ", self._flag_frustration),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem("今日のログ件数を確認", self._show_log_count),
             pystray.MenuItem(analyze_label, self._run_analysis_now),
             pystray.Menu.SEPARATOR,
@@ -95,6 +97,14 @@ class WinTrayApp:
             f.write(text)
             tmp_path = f.name
         subprocess.Popen([sys.executable, str(VIEWER_SCRIPT), tmp_path], close_fds=True)
+
+    def _flag_frustration(self, icon, item):
+        from datetime import datetime
+        today = datetime.now().date().isoformat()
+        if self._db.flag_latest_task_frustration(today):
+            _show_message("フラグを記録", "直前の作業にフラグを立てました")
+        else:
+            _show_message("タスクが見つかりません", "先に「今すぐ分析する」を実行してください")
 
     def _show_log_count(self, icon, item):
         n = self._db.get_today_event_count()

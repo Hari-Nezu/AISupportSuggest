@@ -28,6 +28,8 @@ class AISupportApp(rumps.App):
 
         analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
         self.menu = [
+            rumps.MenuItem("直前の作業にフラグ", callback=self.flag_frustration),
+            None,
             rumps.MenuItem("今日のログ件数を確認", callback=self.show_log_count),
             rumps.MenuItem(analyze_label, callback=self.run_analysis_now),
             None,
@@ -80,6 +82,15 @@ class AISupportApp(rumps.App):
             subprocess.Popen([sys.executable, str(_VIEWER_SCRIPT), tmp_path])
 
     # ── メニューコールバック ──────────────────────────────────────────
+
+    @rumps.clicked("直前の作業にフラグ")
+    def flag_frustration(self, _):
+        from datetime import datetime
+        today = datetime.now().date().isoformat()
+        if self._db.flag_latest_task_frustration(today):
+            rumps.notification(title="フラグを記録", subtitle="", message="直前の作業にフラグを立てました")
+        else:
+            rumps.alert(title="タスクが見つかりません", message="先に「今すぐ分析する」を実行してください")
 
     @rumps.clicked("今日のログ件数を確認")
     def show_log_count(self, _):

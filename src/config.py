@@ -16,6 +16,7 @@ USE_ANTHROPIC = True  # False にすると Ollama を使用
 OLLAMA_BASE_URL = "http://localhost:11434"
 OLLAMA_MODEL = "llama3.2"
 OLLAMA_VISION_MODEL = "llava"
+OLLAMA_TIMEOUT = 60          # チャンク間タイムアウト（秒）。ストリーミングのため全体タイムアウトではない
 
 # ── イベント検出 ─────────────────────────────────────────────────────────────
 POLL_INTERVAL_SECONDS = 1        # アクティブウィンドウのポーリング間隔

@@ -126,6 +126,8 @@ def format_events_for_prompt(events: list[dict]) -> str:
             "window_change": "  ウィンドウ変更",
             "idle_start": "⏸ idle開始",
             "idle_end": "▶ idle復帰",
+            "task_start": "🟢 タスク開始",
+            "task_end": "🔴 タスク終了",
         }.get(etype, etype)
 
         line = f"{time_part} {type_label}: {app}"

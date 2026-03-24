@@ -28,6 +28,9 @@ class AISupportApp(rumps.App):
 
         analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
         self.menu = [
+            rumps.MenuItem("作業開始", callback=self.task_start),
+            rumps.MenuItem("作業終了", callback=self.task_end),
+            None,
             rumps.MenuItem("今日のログ件数を確認", callback=self.show_log_count),
             rumps.MenuItem(analyze_label, callback=self.run_analysis_now),
             None,
@@ -80,6 +83,16 @@ class AISupportApp(rumps.App):
             subprocess.Popen([sys.executable, str(_VIEWER_SCRIPT), tmp_path])
 
     # ── メニューコールバック ──────────────────────────────────────────
+
+    @rumps.clicked("作業開始")
+    def task_start(self, _):
+        self._db.insert_task_event("task_start")
+        rumps.notification(title="作業開始", subtitle="", message="タスク開始を記録しました")
+
+    @rumps.clicked("作業終了")
+    def task_end(self, _):
+        self._db.insert_task_event("task_end")
+        rumps.notification(title="作業終了", subtitle="", message="タスク終了を記録しました")
 
     @rumps.clicked("今日のログ件数を確認")
     def show_log_count(self, _):

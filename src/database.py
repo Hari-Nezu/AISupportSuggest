@@ -85,6 +85,15 @@ class Database:
             )
             return cur.lastrowid  # type: ignore[return-value]
 
+    def insert_task_event(self, event_type: str) -> int:
+        """task_start / task_end をユーザー操作として記録する。"""
+        from datetime import datetime
+        return self.insert_event(
+            timestamp=datetime.now().isoformat(),
+            event_type=event_type,
+            app_name="[ユーザー操作]",
+        )
+
     def update_event_duration(self, event_id: int, duration_seconds: float):
         with self._cursor() as cur:
             cur.execute(

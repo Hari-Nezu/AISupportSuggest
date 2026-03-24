@@ -49,6 +49,9 @@ class WinTrayApp:
         analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
 
         menu = pystray.Menu(
+            pystray.MenuItem("作業開始", self._task_start),
+            pystray.MenuItem("作業終了", self._task_end),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem("今日のログ件数を確認", self._show_log_count),
             pystray.MenuItem(analyze_label, self._run_analysis_now),
             pystray.Menu.SEPARATOR,
@@ -95,6 +98,14 @@ class WinTrayApp:
             f.write(text)
             tmp_path = f.name
         subprocess.Popen([sys.executable, str(VIEWER_SCRIPT), tmp_path], close_fds=True)
+
+    def _task_start(self, icon, item):
+        self._db.insert_task_event("task_start")
+        _show_message("作業開始", "タスク開始を記録しました")
+
+    def _task_end(self, icon, item):
+        self._db.insert_task_event("task_end")
+        _show_message("作業終了", "タスク終了を記録しました")
 
     def _show_log_count(self, icon, item):
         n = self._db.get_today_event_count()

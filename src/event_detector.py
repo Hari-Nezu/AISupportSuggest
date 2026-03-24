@@ -5,6 +5,8 @@
 状態が変わった時だけ DB にイベントを記録する。
 各イベントには前のイベントからの持続時間が付与される。
 """
+from __future__ import annotations
+
 import platform
 import subprocess
 import threading

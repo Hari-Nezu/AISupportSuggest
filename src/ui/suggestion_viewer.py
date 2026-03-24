@@ -2,62 +2,61 @@
 提案表示ウィンドウ（単独プロセスとして起動される）。
 引数にテキストファイルのパスを受け取り、内容を表示する。
 """
+import html
 import sys
-import tkinter as tk
-from tkinter import scrolledtext
+import tempfile
+import webbrowser
+from pathlib import Path
 
 
 def show(text: str):
-    root = tk.Tk()
-    root.title("AI省力化提案")
-    root.geometry("680x520")
-    root.configure(bg="#1e1e2e")
-    root.attributes("-topmost", True)
-    root.resizable(True, True)
+    escaped = html.escape(text)
+    html_content = f"""<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>AI省力化提案</title>
+<style>
+  body {{
+    background: #1e1e2e;
+    color: #cdd6f4;
+    font-family: "Helvetica Neue", Helvetica, sans-serif;
+    font-size: 14px;
+    margin: 0;
+    padding: 20px 24px 24px;
+  }}
+  h1 {{
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #45475a;
+  }}
+  pre {{
+    background: #313244;
+    border-radius: 8px;
+    padding: 16px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.6;
+    font-family: inherit;
+    font-size: 13px;
+  }}
+</style>
+</head>
+<body>
+<h1>AI省力化提案</h1>
+<pre>{escaped}</pre>
+</body>
+</html>"""
 
-    header = tk.Label(
-        root,
-        text="AI省力化提案",
-        font=("Helvetica", 17, "bold"),
-        bg="#1e1e2e",
-        fg="#cdd6f4",
-        pady=12,
-    )
-    header.pack()
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".html", encoding="utf-8", delete=False
+    ) as f:
+        f.write(html_content)
+        tmp_path = f.name
 
-    text_area = scrolledtext.ScrolledText(
-        root,
-        wrap=tk.WORD,
-        font=("Helvetica", 13),
-        bg="#313244",
-        fg="#cdd6f4",
-        insertbackground="white",
-        padx=14,
-        pady=12,
-        relief=tk.FLAT,
-        borderwidth=0,
-    )
-    text_area.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 8))
-    text_area.insert(tk.END, text)
-    text_area.config(state=tk.DISABLED)
-
-    btn = tk.Button(
-        root,
-        text="閉じる",
-        command=root.destroy,
-        bg="#89b4fa",
-        fg="#1e1e2e",
-        font=("Helvetica", 12, "bold"),
-        relief=tk.FLAT,
-        padx=24,
-        pady=6,
-        cursor="hand2",
-        activebackground="#74c7ec",
-        activeforeground="#1e1e2e",
-    )
-    btn.pack(pady=(0, 14))
-
-    root.mainloop()
+    webbrowser.open(f"file://{tmp_path}")
 
 
 if __name__ == "__main__":

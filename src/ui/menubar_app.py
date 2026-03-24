@@ -28,8 +28,7 @@ class AISupportApp(rumps.App):
 
         analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
         self.menu = [
-            rumps.MenuItem("作業開始", callback=self.task_start),
-            rumps.MenuItem("作業終了", callback=self.task_end),
+            rumps.MenuItem("直前の作業にフラグ", callback=self.flag_frustration),
             None,
             rumps.MenuItem("今日のログ件数を確認", callback=self.show_log_count),
             rumps.MenuItem(analyze_label, callback=self.run_analysis_now),
@@ -84,15 +83,14 @@ class AISupportApp(rumps.App):
 
     # ── メニューコールバック ──────────────────────────────────────────
 
-    @rumps.clicked("作業開始")
-    def task_start(self, _):
-        self._db.insert_task_event("task_start")
-        rumps.notification(title="作業開始", subtitle="", message="タスク開始を記録しました")
-
-    @rumps.clicked("作業終了")
-    def task_end(self, _):
-        self._db.insert_task_event("task_end")
-        rumps.notification(title="作業終了", subtitle="", message="タスク終了を記録しました")
+    @rumps.clicked("直前の作業にフラグ")
+    def flag_frustration(self, _):
+        from datetime import datetime
+        today = datetime.now().date().isoformat()
+        if self._db.flag_latest_task_frustration(today):
+            rumps.notification(title="フラグを記録", subtitle="", message="直前の作業にフラグを立てました")
+        else:
+            rumps.alert(title="タスクが見つかりません", message="先に「今すぐ分析する」を実行してください")
 
     @rumps.clicked("今日のログ件数を確認")
     def show_log_count(self, _):

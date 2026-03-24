@@ -45,7 +45,19 @@ def build_semantic_prompt(date_str: str, event_log_text: str) -> str:
 
 - コンテキストスイッチが多い時間帯とその原因推定
 - 非効率な可能性がある操作パターン
-- 長時間のidle（離席・休憩と推定）"""
+- 長時間のidle（離席・休憩と推定）
+
+## [TASKS_JSON]
+
+上記「作業セッション一覧」を以下の JSON 形式で出力してください。
+時刻は HH:MM:SS 形式、label は日本語20字以内。
+このブロックは必ず最後に出力してください。
+
+```json
+[
+  {{"started_at": "HH:MM:SS", "ended_at": "HH:MM:SS", "label": "タスクの概要"}}
+]
+```"""
 
 
 def build_optimization_prompt(date_str: str, semantic_text: str, app_summary_text: str) -> str:
@@ -126,8 +138,6 @@ def format_events_for_prompt(events: list[dict]) -> str:
             "window_change": "  ウィンドウ変更",
             "idle_start": "⏸ idle開始",
             "idle_end": "▶ idle復帰",
-            "task_start": "🟢 タスク開始",
-            "task_end": "🔴 タスク終了",
         }.get(etype, etype)
 
         line = f"{time_part} {type_label}: {app}"

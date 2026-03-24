@@ -1,6 +1,6 @@
 # AISupportSuggest
 
-![version](https://img.shields.io/badge/version-0.2.0-blue)
+![version](https://img.shields.io/badge/version-0.3.0-blue)
 
 1日の作業をイベント単位で自動記録し、AIが作業の「意味」を読み取って効率化を提案してくれるアプリ。
 macOS / Windows 対応。
@@ -23,7 +23,7 @@ macOS / Windows 対応。
 
 ```
 Phase 1: 意味付け
-  「14:00〜14:25 VSCode で main.py を編集」
+  「14:00〜14:25 VSCode で main.go を編集」
   「14:25〜14:30 Chrome で Gmail → Google Drive → Gmail」
    → 推定: 「メールに添付する資料を Google Drive で探していた」
 
@@ -39,8 +39,8 @@ Phase 2: 高速化提案
 | | macOS | Windows |
 |---|---|---|
 | OS | macOS 12 以降 | Windows 10 / 11 |
-| Python | 3.11 以降 | 3.11 以降 |
-| 共通 | Anthropic API キー（会社から発行されたもの） ||
+| Go | 1.21 以降 | 1.21 以降 |
+| 共通 | Anthropic API キー ||
 
 ---
 
@@ -65,7 +65,7 @@ echo $ANTHROPIC_API_KEY   # 確認
 $env:ANTHROPIC_API_KEY="sk-ant-ここにキーを貼り付け"
 ```
 
-### 2. アプリのセットアップ
+### 2. ビルドとセットアップ
 
 **macOS:**
 ```bash
@@ -74,9 +74,9 @@ bash scripts/setup.sh
 ```
 
 **Windows:**
-```bat
+```powershell
 cd AISupportSuggest
-scripts\setup.bat
+go build -o bin\aisupportsuggest.exe .\cmd\aisupportsuggest
 ```
 
 ### 3. プライバシー許可（macOS のみ）
@@ -86,7 +86,6 @@ scripts\setup.bat
 | 権限 | 用途 |
 |------|------|
 | オートメーション | アクティブなアプリ名・ウィンドウタイトルの取得 |
-| 入力監視 | キーボードショートカットの種別検出（内容は記録しません） |
 
 ---
 
@@ -94,12 +93,12 @@ scripts\setup.bat
 
 **macOS:**
 ```bash
-python3 main.py
+bin/aisupportsuggest
 ```
 
 **Windows:**
-```bat
-python main.py
+```powershell
+bin\aisupportsuggest.exe
 ```
 
 メニューバー（macOS）/ システムトレイ（Windows）に `AI` が表示されたら起動完了です。
@@ -120,8 +119,6 @@ python main.py
 
 ## データの記録方式
 
-旧バージョンの5分間隔ポーリングから **イベント駆動型** に変更されました。
-
 - アプリ切り替え・ウィンドウ変更が発生した瞬間だけ記録
 - 各イベントに持続時間（秒）が付与される
 - 5分間変化がないと idle（離席）として記録
@@ -129,30 +126,38 @@ python main.py
 
 ---
 
-## オプション機能
+## オプション設定
+
+設定はすべて **環境変数** で行います。
+
+| 環境変数 | デフォルト | 説明 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | — | Anthropic API キー |
+| `RECORD_ONLY` | `false` | `true` にすると LLM 呼び出しをスキップし記録のみ |
+| `USE_ANTHROPIC` | `true` | `false` にすると Ollama を使用 |
+| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama のエンドポイント |
+| `OLLAMA_MODEL` | `llama3.2` | 使用する Ollama モデル |
+| `ANALYSIS_HOUR` | `0` | 自動分析の時 |
+| `ANALYSIS_MINUTE` | `0` | 自動分析の分 |
+| `DB_PATH` | `data/activity.db` | SQLite ファイルのパス |
+| `POLL_INTERVAL_SEC` | `1` | ポーリング間隔（秒） |
+| `IDLE_THRESHOLD_SEC` | `300` | idle 判定の閾値（秒） |
 
 ### 収録のみモード
 
-LLM API を一切呼ばず、記録だけを行うモード。
-
-`src/config.py` を編集:
-```python
-RECORD_ONLY = True
+```bash
+RECORD_ONLY=true bin/aisupportsuggest
 ```
 
 アイコンが `録` に変わります。
 
 ### ローカル LLM（Ollama）への切り替え
 
-[Ollama](https://ollama.com) をインストール後、`src/config.py` を編集:
-```python
-USE_ANTHROPIC = False
-OLLAMA_MODEL  = "llama3.2"
-```
+[Ollama](https://ollama.com) をインストール後:
 
 ```bash
 ollama serve
-python3 main.py
+USE_ANTHROPIC=false bin/aisupportsuggest
 ```
 
 ---
@@ -161,25 +166,30 @@ python3 main.py
 
 ```
 AISupportSuggest/
-├── main.py                      # エントリポイント
-├── src/
-│   ├── config.py                # 設定
-│   ├── database.py              # SQLite DB
-│   ├── event_detector.py        # イベント駆動ログ
-│   ├── llm_client.py            # LLM バックエンド
-│   ├── prompts.py               # プロンプトテンプレート
-│   ├── analyzer.py              # 2段階分析
+├── cmd/aisupportsuggest/
+│   └── main.go                  # エントリポイント
+├── internal/
+│   ├── config/config.go         # 環境変数による設定
+│   ├── database/db.go           # SQLite CRUD
+│   ├── detector/
+│   │   ├── detector.go          # 監視ループ（共通）
+│   │   ├── detector_darwin.go   # macOS: osascript 経由
+│   │   └── detector_windows.go  # Windows: Win32 API 経由
+│   ├── analyzer/
+│   │   ├── analyzer.go          # 2段階分析オーケストレーション
+│   │   └── prompts.go           # LLM プロンプトテンプレート
+│   ├── llm/client.go            # Anthropic / Ollama 切替クライアント
 │   └── ui/
-│       ├── menubar_app.py           # macOS (rumps)
-│       ├── tray_app_win.py          # Windows (pystray)
-│       ├── SuggestionViewer.swift   # 結果表示ウィンドウ (macOS ネイティブ)
-│       └── suggestion_viewer.py     # 結果表示フォールバック (Python)
+│       ├── tray.go              # systray UI（macOS / Windows 共通）
+│       ├── viewer.go            # 提案表示（Swift / ブラウザフォールバック）
+│       ├── alert_darwin.go      # macOS アラートダイアログ
+│       └── alert_windows.go     # Windows アラートダイアログ
+├── SuggestionViewer.swift       # 結果表示（AppKit ネイティブ、優先使用）
 ├── data/                        # 自動生成（.gitignore）
 │   └── activity.db              # イベント DB
-├── requirements.txt
 ├── scripts/
-│   ├── setup.sh
-│   └── setup.bat
+│   ├── setup.sh                 # macOS セットアップスクリプト
+│   └── setup.bat                # Windows セットアップスクリプト
 └── docs/
     └── TECH.md
 ```

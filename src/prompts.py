@@ -7,7 +7,7 @@ Phase 2: optimization — 意味付けデータからワークロード高速化
 from __future__ import annotations
 
 
-def build_semantic_prompt(date_str: str, event_log_text: str, has_screenshots: bool = False) -> str:
+def build_semantic_prompt(date_str: str, event_log_text: str) -> str:
     """
     Phase 1 プロンプト: 日付単位のイベントログを受け取り、
     各作業セッションの意味を推定して構造化する。
@@ -15,13 +15,9 @@ def build_semantic_prompt(date_str: str, event_log_text: str, has_screenshots: b
     例: 「Google Drive を開いた後に Gmail で新規メールを作成した」
         → 「ドキュメントを確認してメールに添付しようとしていた」
     """
-    screenshot_note = ""
-    if has_screenshots:
-        screenshot_note = "\n※ スクリーンショットも添付されています。画面の内容も考慮して分析してください。\n"
-
     return f"""あなたはユーザーのPC作業パターンを分析する専門家です。
 以下は {date_str} のイベントログです。各行は「アプリの切り替え」や「ウィンドウの変更」が
-発生した瞬間を記録しています。{screenshot_note}
+発生した瞬間を記録しています。
 
 === イベントログ ===
 {event_log_text}

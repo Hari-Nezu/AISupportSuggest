@@ -8,7 +8,6 @@ DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
 DB_PATH = DATA_DIR / "activity.db"
-SCREENSHOT_DIR = DATA_DIR / "screenshots"
 
 # ── LLM バックエンド ─────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
@@ -21,8 +20,6 @@ OLLAMA_VISION_MODEL = "llava"
 # ── イベント検出 ─────────────────────────────────────────────────────────────
 POLL_INTERVAL_SECONDS = 1        # アクティブウィンドウのポーリング間隔
 IDLE_THRESHOLD_SECONDS = 300     # 5分間変化なし → idle 判定
-SCREENSHOT_MODE = False          # True にするとアプリ切替時にスクショ撮影
-SCREENSHOT_MAX_SEND = 12         # 分析時にLLMへ送る最大枚数
 
 # ── 動作モード ───────────────────────────────────────────────────────────────
 RECORD_ONLY = False              # True = LLM API を呼ばず記録のみ

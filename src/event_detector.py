@@ -12,13 +12,8 @@ import subprocess
 import threading
 from datetime import datetime
 
-from src.config import (
-    IDLE_THRESHOLD_SECONDS,
-    POLL_INTERVAL_SECONDS,
-    SCREENSHOT_MODE,
-)
+from src.config import IDLE_THRESHOLD_SECONDS, POLL_INTERVAL_SECONDS
 from src.database import Database
-from src.screenshot import capture_screenshot
 
 PLATFORM = platform.system()
 
@@ -179,16 +174,11 @@ class EventDetector:
 
         # 新しいイベントを記録
         event_type = "app_switch" if app_changed else "window_change"
-        screenshot_path = None
-        if SCREENSHOT_MODE and app_changed:
-            screenshot_path = capture_screenshot(now.isoformat())
-
         self._last_event_id = self._db.insert_event(
             timestamp=now.isoformat(),
             event_type=event_type,
             app_name=app,
             window_title=window,
-            screenshot_path=screenshot_path,
         )
         self._current_app = app
         self._current_window = window

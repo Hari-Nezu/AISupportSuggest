@@ -131,7 +131,14 @@ def format_events_for_prompt(events: list[dict]) -> str:
         app = e.get("app_name", "")
         window = e.get("window_title", "")
         dur = e.get("duration_seconds")
-        dur_str = f" ({dur:.0f}秒)" if dur else ""
+        if dur is None:
+            dur_str = ""
+        elif dur < 3:
+            dur_str = " (一瞬)"
+        elif dur < 60:
+            dur_str = f" ({dur:.0f}秒)"
+        else:
+            dur_str = f" ({dur / 60:.0f}分)"
 
         type_label = {
             "app_switch": "→ アプリ切替",

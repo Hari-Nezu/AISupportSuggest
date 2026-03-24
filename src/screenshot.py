@@ -1,4 +1,6 @@
 """プラットフォーム別スクリーンショット撮影。"""
+from __future__ import annotations
+
 import platform
 import subprocess
 from pathlib import Path

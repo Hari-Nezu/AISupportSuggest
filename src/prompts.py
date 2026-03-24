@@ -4,6 +4,7 @@ LLM プロンプトテンプレート。
 Phase 1: semantic  — イベントログから作業の「意味付け」を行う
 Phase 2: optimization — 意味付けデータからワークロード高速化を提案する
 """
+from __future__ import annotations
 
 
 def build_semantic_prompt(date_str: str, event_log_text: str, has_screenshots: bool = False) -> str:

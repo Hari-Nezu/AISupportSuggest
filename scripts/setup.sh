@@ -19,7 +19,7 @@ echo ">> bin/aisupportsuggest をビルドしました"
 # Swift ビューアのビルド（macOS のみ・任意）
 if [[ "$(uname)" == "Darwin" ]]; then
     echo ">> Swift ビューアをビルド中..."
-    if swiftc src/ui/SuggestionViewer.swift -o bin/SuggestionViewer 2>&1; then
+    if swiftc SuggestionViewer.swift -o bin/SuggestionViewer 2>&1; then
         echo ">> bin/SuggestionViewer をビルドしました"
     else
         echo ">> 警告: Swift ビルドに失敗しました。ブラウザフォールバックを使用します。"

@@ -1,4 +1,9 @@
-from menubar_app import AISupportApp
+"""AISupportSuggest エントリポイント。"""
+import platform
 
-if __name__ == "__main__":
+if platform.system() == "Windows":
+    from src.ui.tray_app_win import WinTrayApp
+    WinTrayApp().run()
+else:
+    from src.ui.menubar_app import AISupportApp
     AISupportApp().run()

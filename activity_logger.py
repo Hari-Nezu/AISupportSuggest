@@ -1,4 +1,5 @@
 import json
+import platform
 import subprocess
 import threading
 import time
@@ -12,9 +13,12 @@ from config import (
     SCREENSHOT_MODE,
 )
 
+PLATFORM = platform.system()
 
-def get_active_app_info() -> tuple[str, str]:
-    """AppleScript でフロントウィンドウのアプリ名とタイトルを取得する。"""
+
+# ── アクティブウィンドウ取得 ───────────────────────────────────────────────────
+
+def _get_active_app_macos() -> tuple[str, str]:
     script = """
     tell application "System Events"
         set frontApp to name of first application process whose frontmost is true
@@ -40,26 +44,77 @@ def get_active_app_info() -> tuple[str, str]:
     return "Unknown", ""
 
 
-def capture_screenshot(timestamp: str) -> str | None:
-    """
-    スクリーンショットを撮影して保存し、ファイルパスを返す。
-    macOS の「画面収録」権限が必要。
-    失敗した場合は None を返す。
-    """
-    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
-    safe_ts = timestamp.replace(":", "-")
-    filepath = SCREENSHOT_DIR / f"{safe_ts}.png"
+def _get_active_app_windows() -> tuple[str, str]:
+    try:
+        import ctypes
+        import ctypes.wintypes
+        import psutil
+
+        user32 = ctypes.windll.user32
+        hwnd = user32.GetForegroundWindow()
+
+        # ウィンドウタイトル
+        length = user32.GetWindowTextLengthW(hwnd)
+        buff = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, buff, length + 1)
+        window_title = buff.value
+
+        # プロセス名
+        pid = ctypes.wintypes.DWORD()
+        user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        process = psutil.Process(pid.value)
+        app_name = process.name().removesuffix(".exe")
+
+        return app_name, window_title
+    except Exception:
+        pass
+    return "Unknown", ""
+
+
+def get_active_app_info() -> tuple[str, str]:
+    if PLATFORM == "Windows":
+        return _get_active_app_windows()
+    return _get_active_app_macos()
+
+
+# ── スクリーンショット ─────────────────────────────────────────────────────────
+
+def _capture_screenshot_macos(filepath: Path) -> bool:
     try:
         result = subprocess.run(
             ["screencapture", "-x", "-t", "png", str(filepath)],
             capture_output=True, timeout=10
         )
-        if result.returncode == 0 and filepath.exists():
-            return str(filepath)
+        return result.returncode == 0 and filepath.exists()
     except Exception:
-        pass
-    return None
+        return False
 
+
+def _capture_screenshot_windows(filepath: Path) -> bool:
+    try:
+        from PIL import ImageGrab
+        screenshot = ImageGrab.grab()
+        screenshot.save(str(filepath), "PNG")
+        return filepath.exists()
+    except Exception:
+        return False
+
+
+def capture_screenshot(timestamp: str) -> str | None:
+    """スクリーンショットを撮影して保存し、ファイルパスを返す。失敗時は None。"""
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    safe_ts = timestamp.replace(":", "-")
+    filepath = SCREENSHOT_DIR / f"{safe_ts}.png"
+
+    success = (
+        _capture_screenshot_windows(filepath)
+        if PLATFORM == "Windows"
+        else _capture_screenshot_macos(filepath)
+    )
+    return str(filepath) if success else None
+
+
+# ── ログ操作 ──────────────────────────────────────────────────────────────────
 
 def log_activity() -> dict:
     """現在のアクティブアプリをログファイルに追記する。"""
@@ -103,10 +158,7 @@ def get_today_log() -> list[dict]:
 
 
 def get_today_screenshots(entries: list[dict], max_count: int) -> list[str]:
-    """
-    今日のログから screenshot パスを均等サンプリングして返す。
-    max_count 枚を上限とする。
-    """
+    """今日のログから screenshot パスを均等サンプリングして返す。"""
     paths = [
         e["screenshot"]
         for e in entries
@@ -116,10 +168,11 @@ def get_today_screenshots(entries: list[dict], max_count: int) -> list[str]:
         return []
     if len(paths) <= max_count:
         return paths
-    # 均等サンプリング
     step = len(paths) / max_count
     return [paths[int(i * step)] for i in range(max_count)]
 
+
+# ── ロガークラス ──────────────────────────────────────────────────────────────
 
 class ActivityLogger:
     """バックグラウンドスレッドで定期的にアクティビティを記録する。"""

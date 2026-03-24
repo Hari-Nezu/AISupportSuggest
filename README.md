@@ -5,7 +5,7 @@
 1日の作業をイベント単位で自動記録し、AIが作業の「意味」を読み取って効率化を提案してくれるアプリ。
 macOS / Windows 対応。
 
-> 詳細な技術仕様は [TECH.md](./TECH.md) を参照してください。
+> 詳細な技術仕様は [docs/TECH.md](./docs/TECH.md) を参照してください。
 
 ---
 
@@ -70,13 +70,13 @@ $env:ANTHROPIC_API_KEY="sk-ant-ここにキーを貼り付け"
 **macOS:**
 ```bash
 cd AISupportSuggest
-bash setup.sh
+bash scripts/setup.sh
 ```
 
 **Windows:**
 ```bat
 cd AISupportSuggest
-setup.bat
+scripts\setup.bat
 ```
 
 ### 3. プライバシー許可（macOS のみ）
@@ -177,8 +177,11 @@ AISupportSuggest/
 ├── data/                        # 自動生成（.gitignore）
 │   └── activity.db              # イベント DB
 ├── requirements.txt
-├── setup.sh / setup.bat
-└── TECH.md
+├── scripts/
+│   ├── setup.sh
+│   └── setup.bat
+└── docs/
+    └── TECH.md
 ```
 
 ---

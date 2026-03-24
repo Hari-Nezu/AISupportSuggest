@@ -14,7 +14,8 @@ from src.config import ANALYSIS_HOUR, ANALYSIS_MINUTE, RECORD_ONLY
 from src.database import Database
 from src.event_detector import EventDetector
 
-VIEWER_SCRIPT = Path(__file__).resolve().parent / "suggestion_viewer.py"
+_VIEWER_BINARY = Path(__file__).resolve().parents[2] / "bin" / "SuggestionViewer"
+_VIEWER_SCRIPT = Path(__file__).resolve().parent / "suggestion_viewer.py"
 
 
 class AISupportApp(rumps.App):
@@ -73,7 +74,10 @@ class AISupportApp(rumps.App):
         ) as f:
             f.write(text)
             tmp_path = f.name
-        subprocess.Popen([sys.executable, str(VIEWER_SCRIPT), tmp_path])
+        if _VIEWER_BINARY.exists():
+            subprocess.Popen([str(_VIEWER_BINARY), tmp_path])
+        else:
+            subprocess.Popen([sys.executable, str(_VIEWER_SCRIPT), tmp_path])
 
     # ── メニューコールバック ──────────────────────────────────────────
 

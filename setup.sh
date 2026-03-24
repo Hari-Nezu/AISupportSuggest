@@ -10,6 +10,17 @@ python3 --version
 echo ">> パッケージをインストール中..."
 pip3 install -r requirements.txt
 
+# Swift ビューアのビルド（macOS のみ）
+if [[ "$(uname)" == "Darwin" ]]; then
+    echo ">> Swift ビューアをビルド中..."
+    mkdir -p bin
+    if swiftc src/ui/SuggestionViewer.swift -o bin/SuggestionViewer 2>&1; then
+        echo ">> bin/SuggestionViewer をビルドしました"
+    else
+        echo ">> 警告: Swift ビルドに失敗しました。Python フォールバックを使用します。"
+    fi
+fi
+
 # API キーの確認
 echo ""
 if [ -z "$ANTHROPIC_API_KEY" ]; then

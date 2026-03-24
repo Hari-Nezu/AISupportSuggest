@@ -12,9 +12,9 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
-from src.config import RECORD_ONLY, SCREENSHOT_MAX_SEND, SCREENSHOT_MODE
+from src.config import RECORD_ONLY
 from src.database import Database
-from src.llm_client import query_llm, query_llm_with_images
+from src.llm_client import query_llm
 from src.prompts import (
     build_optimization_prompt,
     build_semantic_prompt,
@@ -72,18 +72,8 @@ def analyze_today(db: Database | None = None) -> str:
     event_text = format_events_for_prompt(events)
     app_summary_text = format_app_summary(app_summary)
 
-    has_screenshots = False
-    screenshot_paths: list[str] = []
-    if SCREENSHOT_MODE:
-        screenshot_paths = db.get_screenshots_by_date(today, SCREENSHOT_MAX_SEND)
-        has_screenshots = len(screenshot_paths) > 0
-
-    semantic_prompt = build_semantic_prompt(today, event_text, has_screenshots)
-
-    if has_screenshots:
-        semantic_result = query_llm_with_images(semantic_prompt, screenshot_paths)
-    else:
-        semantic_result = query_llm(semantic_prompt)
+    semantic_prompt = build_semantic_prompt(today, event_text)
+    semantic_result = query_llm(semantic_prompt)
 
     # DB に保存
     db.save_analysis(

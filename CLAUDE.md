@@ -26,7 +26,6 @@ main.py
 | `src/analyzer.py` | Phase 1→Phase 2 の分析オーケストレーション |
 | `src/prompts.py` | LLM プロンプトテンプレート |
 | `src/llm_client.py` | Anthropic / Ollama 切替クライアント |
-| `src/screenshot.py` | スクリーンショット撮影 |
 | `src/ui/menubar_app.py` | macOS メニューバー UI |
 | `src/ui/tray_app_win.py` | Windows トレイ UI |
 | `src/ui/suggestion_viewer.py` | 提案表示（Python フォールバック、webbrowser 使用） |
@@ -45,7 +44,6 @@ python3 main.py
 | 変数 | デフォルト | 説明 |
 |---|---|---|
 | `RECORD_ONLY` | `False` | `True` にすると LLM 呼び出しをスキップし記録のみ |
-| `SCREENSHOT_MODE` | `False` | `True` にするとアプリ切替時にスクショ撮影 |
 | `USE_ANTHROPIC` | `True` | `False` にすると Ollama を使用 |
 | `ANALYSIS_HOUR/MINUTE` | `0:00` | 毎日の自動分析時刻 |
 
@@ -64,7 +62,7 @@ swiftc src/ui/SuggestionViewer.swift -o bin/SuggestionViewer
 ## DB スキーマ
 
 ```sql
-events (id, timestamp, event_type, app_name, window_title, screenshot_path, duration_seconds)
+events (id, timestamp, event_type, app_name, window_title, duration_seconds)
 daily_analysis (id, date, phase, event_count, app_summary, analysis_text)
 ```
 

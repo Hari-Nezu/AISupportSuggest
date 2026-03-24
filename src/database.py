@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS events (
     event_type      TEXT    NOT NULL DEFAULT 'app_switch',
     app_name        TEXT    NOT NULL DEFAULT 'Unknown',
     window_title    TEXT    DEFAULT '',
-    screenshot_path TEXT,
     duration_seconds REAL,
     created_at      TEXT    NOT NULL DEFAULT (datetime('now','localtime'))
 );
@@ -77,13 +76,12 @@ class Database:
         event_type: str,
         app_name: str,
         window_title: str = "",
-        screenshot_path: str | None = None,
     ) -> int:
         with self._cursor() as cur:
             cur.execute(
-                """INSERT INTO events (timestamp, event_type, app_name, window_title, screenshot_path)
-                   VALUES (?, ?, ?, ?, ?)""",
-                (timestamp, event_type, app_name, window_title, screenshot_path),
+                """INSERT INTO events (timestamp, event_type, app_name, window_title)
+                   VALUES (?, ?, ?, ?)""",
+                (timestamp, event_type, app_name, window_title),
             )
             return cur.lastrowid  # type: ignore[return-value]
 
@@ -114,23 +112,6 @@ class Database:
                 "SELECT COUNT(*) FROM events WHERE date(timestamp) = date('now','localtime')"
             )
             return cur.fetchone()[0]
-
-    def get_screenshots_by_date(self, date_str: str, max_count: int = 12) -> list[str]:
-        """指定日のスクリーンショットパスを均等サンプリングして返す。"""
-        with self._cursor() as cur:
-            cur.execute(
-                """SELECT screenshot_path FROM events
-                   WHERE date(timestamp) = ? AND screenshot_path IS NOT NULL
-                   ORDER BY timestamp""",
-                (date_str,),
-            )
-            paths = [row[0] for row in cur.fetchall()]
-        if not paths or max_count <= 0:
-            return []
-        if len(paths) <= max_count:
-            return paths
-        step = len(paths) / max_count
-        return [paths[int(i * step)] for i in range(max_count)]
 
     # ── 分析結果操作 ──────────────────────────────────────────────────────
 

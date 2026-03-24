@@ -141,17 +141,6 @@ RECORD_ONLY = True
 
 アイコンが `録` に変わります。
 
-### スクリーンショットモード
-
-アプリ切替時にスクリーンショットを撮影し、分析時に画像も LLM へ送信します。
-
-`src/config.py` を編集:
-```python
-SCREENSHOT_MODE = True
-```
-
-macOS では「画面収録」権限の許可が必要です。
-
 ### ローカル LLM（Ollama）への切り替え
 
 [Ollama](https://ollama.com) をインストール後、`src/config.py` を編集:
@@ -176,17 +165,16 @@ AISupportSuggest/
 │   ├── config.py                # 設定
 │   ├── database.py              # SQLite DB
 │   ├── event_detector.py        # イベント駆動ログ
-│   ├── screenshot.py            # スクリーンショット撮影
 │   ├── llm_client.py            # LLM バックエンド
 │   ├── prompts.py               # プロンプトテンプレート
 │   ├── analyzer.py              # 2段階分析
 │   └── ui/
-│       ├── menubar_app.py       # macOS (rumps)
-│       ├── tray_app_win.py      # Windows (pystray)
-│       └── suggestion_viewer.py # 結果表示ウィンドウ
+│       ├── menubar_app.py           # macOS (rumps)
+│       ├── tray_app_win.py          # Windows (pystray)
+│       ├── SuggestionViewer.swift   # 結果表示ウィンドウ (macOS ネイティブ)
+│       └── suggestion_viewer.py     # 結果表示フォールバック (Python)
 ├── data/                        # 自動生成（.gitignore）
-│   ├── activity.db              # イベント DB
-│   └── screenshots/             # スクリーンショット
+│   └── activity.db              # イベント DB
 ├── requirements.txt
 ├── setup.sh / setup.bat
 └── TECH.md
@@ -196,8 +184,7 @@ AISupportSuggest/
 
 ## プライバシーについて
 
-- デフォルトでは **アプリ名とウィンドウタイトルのみ** を記録（画面キャプチャなし）
-- スクリーンショットモードは任意で有効化するオプション
+- **アプリ名とウィンドウタイトルのみ** を記録（画面キャプチャなし）
 - Anthropic API の商用利用では、入出力データはモデル学習に使用されません
 - ログは `data/activity.db` にローカル保存。削除したい場合はこのファイルを削除
 

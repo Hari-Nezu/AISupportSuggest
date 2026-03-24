@@ -29,7 +29,7 @@ main.py
 | `src/ui/menubar_app.py` | macOS メニューバー UI |
 | `src/ui/tray_app_win.py` | Windows トレイ UI |
 | `src/ui/suggestion_viewer.py` | 提案表示（Python フォールバック、webbrowser 使用） |
-| `src/ui/SuggestionViewer.swift` | 提案表示（AppKit ネイティブ、優先使用） |
+| `SuggestionViewer.swift` | 提案表示（AppKit ネイティブ、優先使用） |
 
 ## セットアップ
 
@@ -54,7 +54,7 @@ python3 main.py
 
 Swift ビューアのビルド:
 ```sh
-swiftc src/ui/SuggestionViewer.swift -o bin/SuggestionViewer
+swiftc SuggestionViewer.swift -o bin/SuggestionViewer
 ```
 
 `bin/` は `.gitignore` 対象のためコミット不要。

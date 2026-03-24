@@ -13,6 +13,7 @@ from src.analyzer import analyze_today
 from src.config import ANALYSIS_HOUR, ANALYSIS_MINUTE, RECORD_ONLY
 from src.database import Database
 from src.event_detector import EventDetector
+from src.shortcut_detector import ShortcutDetector
 
 _VIEWER_BINARY = Path(__file__).resolve().parents[2] / "bin" / "SuggestionViewer"
 _VIEWER_SCRIPT = Path(__file__).resolve().parent / "suggestion_viewer.py"
@@ -25,6 +26,7 @@ class AISupportApp(rumps.App):
 
         self._db = Database()
         self._detector = EventDetector(self._db)
+        self._shortcut_detector = ShortcutDetector(self._db)
 
         analyze_label = "今日のログを確認する" if RECORD_ONLY else "今すぐ分析する"
         self.menu = [
@@ -37,6 +39,7 @@ class AISupportApp(rumps.App):
         ]
 
         self._detector.start()
+        self._shortcut_detector.start()
         self._start_scheduler()
 
     # ── スケジューラー ────────────────────────────────────────────────
@@ -107,4 +110,5 @@ class AISupportApp(rumps.App):
 
     def quit_app(self, _):
         self._detector.stop()
+        self._shortcut_detector.stop()
         rumps.quit_application()

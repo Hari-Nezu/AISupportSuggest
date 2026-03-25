@@ -15,10 +15,9 @@ import (
 // OpenViewer は分析結果テキストを表示する。
 // 優先順: bin/SuggestionViewer（Swift） > ブラウザ（一時 HTML）
 func OpenViewer(result string) error {
-	// 実行ファイルからの相対パスで bin/ を探す
+	// 実行ファイルと同じディレクトリの SuggestionViewer を探す
 	exePath, _ := os.Executable()
-	binDir := filepath.Join(filepath.Dir(exePath), "bin")
-	swiftBin := filepath.Join(binDir, "SuggestionViewer")
+	swiftBin := filepath.Join(filepath.Dir(exePath), "SuggestionViewer")
 
 	if _, err := os.Stat(swiftBin); err == nil {
 		return openSwiftViewer(swiftBin, result)

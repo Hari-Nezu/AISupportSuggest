@@ -23,7 +23,7 @@ macOS / Windows 対応。
 
 ```
 Phase 1: 意味付け
-  「14:00〜14:25 VSCode で main.py を編集」
+  「14:00〜14:25 VSCode で main.go を編集」
   「14:25〜14:30 Chrome で Gmail → Google Drive → Gmail」
    → 推定: 「メールに添付する資料を Google Drive で探していた」
 
@@ -39,7 +39,7 @@ Phase 2: 高速化提案
 | | macOS | Windows |
 |---|---|---|
 | OS | macOS 12 以降 | Windows 10 / 11 |
-| Python | 3.11 以降 | 3.11 以降 |
+| Go | 1.21 以降 | 1.21 以降 |
 | 共通 | Anthropic API キー（会社から発行されたもの） ||
 
 ---
@@ -86,7 +86,6 @@ scripts\setup.bat
 | 権限 | 用途 |
 |------|------|
 | オートメーション | アクティブなアプリ名・ウィンドウタイトルの取得 |
-| 入力監視 | キーボードショートカットの種別検出（内容は記録しません） |
 
 ---
 
@@ -94,12 +93,12 @@ scripts\setup.bat
 
 **macOS:**
 ```bash
-python3 main.py
+./bin/aisupportsuggest
 ```
 
 **Windows:**
 ```bat
-python main.py
+bin\aisupportsuggest.exe
 ```
 
 メニューバー（macOS）/ システムトレイ（Windows）に `AI` が表示されたら起動完了です。
@@ -120,7 +119,7 @@ python main.py
 
 ## データの記録方式
 
-旧バージョンの5分間隔ポーリングから **イベント駆動型** に変更されました。
+**イベント駆動型**で記録します。
 
 - アプリ切り替え・ウィンドウ変更が発生した瞬間だけ記録
 - 各イベントに持続時間（秒）が付与される
@@ -135,24 +134,22 @@ python main.py
 
 LLM API を一切呼ばず、記録だけを行うモード。
 
-`src/config.py` を編集:
-```python
-RECORD_ONLY = True
+環境変数を設定して起動:
+```bash
+RECORD_ONLY=true ./bin/aisupportsuggest
 ```
 
 アイコンが `録` に変わります。
 
 ### ローカル LLM（Ollama）への切り替え
 
-[Ollama](https://ollama.com) をインストール後、`src/config.py` を編集:
-```python
-USE_ANTHROPIC = False
-OLLAMA_MODEL  = "llama3.2"
+[Ollama](https://ollama.com) をインストール後、環境変数を設定して起動:
+```bash
+USE_ANTHROPIC=false OLLAMA_MODEL=llama3.2 ./bin/aisupportsuggest
 ```
 
 ```bash
-ollama serve
-python3 main.py
+ollama serve   # 別ターミナルで起動しておく
 ```
 
 ---
@@ -161,27 +158,24 @@ python3 main.py
 
 ```
 AISupportSuggest/
-├── main.py                      # エントリポイント
-├── src/
-│   ├── config.py                # 設定
-│   ├── database.py              # SQLite DB
-│   ├── event_detector.py        # イベント駆動ログ
-│   ├── llm_client.py            # LLM バックエンド
-│   ├── prompts.py               # プロンプトテンプレート
-│   ├── analyzer.py              # 2段階分析
-│   └── ui/
-│       ├── menubar_app.py           # macOS (rumps)
-│       ├── tray_app_win.py          # Windows (pystray)
-│       ├── SuggestionViewer.swift   # 結果表示ウィンドウ (macOS ネイティブ)
-│       └── suggestion_viewer.py     # 結果表示フォールバック (Python)
-├── data/                        # 自動生成（.gitignore）
-│   └── activity.db              # イベント DB
-├── requirements.txt
+├── cmd/aisupportsuggest/
+│   └── main.go                  # エントリポイント
+├── internal/
+│   ├── config/config.go         # 設定（環境変数）
+│   ├── database/db.go           # SQLite DB
+│   ├── detector/                # イベント駆動ログ
+│   ├── llm/client.go            # LLM バックエンド
+│   ├── analyzer/                # 2段階分析
+│   └── ui/                      # メニューバー/トレイ・ビューア
+├── SuggestionViewer.swift        # 結果表示ウィンドウ（macOS ネイティブ）
+├── data/                         # 自動生成（.gitignore）
+│   └── activity.db               # イベント DB
 ├── scripts/
 │   ├── setup.sh
 │   └── setup.bat
-└── docs/
-    └── TECH.md
+├── docs/
+│   └── TECH.md
+└── go.mod / go.sum
 ```
 
 ---
